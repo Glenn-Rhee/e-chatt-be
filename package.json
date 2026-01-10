@@ -1,0 +1,30 @@
+{
+  "name": "e-chatt-be",
+  "version": "1.0.0",
+  "description": "",
+  "homepage": "https://github.com/Glenn-Rhee/e-chatt-be#readme",
+  "bugs": {
+    "url": "https://github.com/Glenn-Rhee/e-chatt-be/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Glenn-Rhee/e-chatt-be.git"
+  },
+  "license": "ISC",
+  "author": "Ariel Rizki Muhtamad Bakri",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "crypto-js": "^4.2.0",
+    "express": "^5.2.1",
+    "zod": "^4.3.5"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "prisma": "^7.2.0",
+    "typescript": "^5.9.3"
+  }
+}
