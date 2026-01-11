@@ -3,6 +3,7 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import { userRoutes } from "../router/user-routes.js";
 import { notFound } from "../middleware/notFound.js";
+import { errorMiddleware } from "../middleware/error-middleware.js";
 
 const app = express();
 const PORT = 8001 as const;
@@ -23,6 +24,8 @@ app.use(userRoutes);
 
 // Middleware
 app.use(notFound);
+app.use(errorMiddleware);
+
 app.listen(PORT, () => {
   console.log("Server is running on http://localhost:" + PORT);
 });
