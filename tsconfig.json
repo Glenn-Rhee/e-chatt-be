@@ -8,8 +8,8 @@
 
     // Environment Settings
     // See also https://aka.ms/tsconfig/module
-    "module": "node16",
-    "target": "esnext",
+    "module": "nodenext",
+    "target": "es2020",
     "types": [],
     // For nodejs:
     // "lib": ["esnext"],
@@ -41,6 +41,8 @@
     "noUncheckedSideEffectImports": true,
     "moduleDetection": "force",
     "skipLibCheck": true,
-    "moduleResolution": "node16"
+    "moduleResolution": "nodenext",
+    "esModuleInterop": true,
+    "skipDefaultLibCheck": true
   }
 }
