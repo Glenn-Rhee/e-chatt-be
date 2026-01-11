@@ -13,7 +13,7 @@ export default class UserController {
     try {
       const data = req.body as z.infer<typeof UserValidation.CREATEUSER>;
       Validation.validate(UserValidation.CREATEUSER, data);
-      const response = await UserService.CreateUser();
+      const response = await UserService.CreateUser(data);
       return res.status(response.code).json(response);
     } catch (error) {
       next(error);
