@@ -13,6 +13,6 @@ export default class Encryption {
       cipherText,
       process.env.CRYPTO_KEY as string
     );
-    return JSON.parse(bytes.toString(CryptoJs.enc.Utf8));
+    return bytes.toString(CryptoJs.enc.Utf8);
   }
 }

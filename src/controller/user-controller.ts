@@ -23,12 +23,8 @@ export default class UserController {
 
   public static async GetUser(req: Request, res: Response, next: NextFunction) {
     try {
-      const token = req.headers["Authorization"];
-      if (typeof token !== "string") {
-        throw new ResponseError(403, "Oops! Forbidden token is required!");
-      }
-
-      const response = await UserService.GetUser()
+      const response = await UserService.GetUser("asdasd");
+      return res.status(response.code).json(response);
     } catch (error) {
       next(error);
     }

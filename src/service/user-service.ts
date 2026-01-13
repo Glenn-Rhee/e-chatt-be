@@ -58,5 +58,12 @@ export default class UserService {
     };
   }
 
-  public static async GetUser(userId: string): Promise<ResponsePayload> {}
+  public static async GetUser(email: string): Promise<ResponsePayload> {
+    return {
+      code: 200,
+      data: null,
+      message: "Success get user!",
+      status: "success",
+    };
+  }
 }
