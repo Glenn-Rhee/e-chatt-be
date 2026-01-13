@@ -3,6 +3,7 @@ import UserService from "../service/user-service.js";
 import type z from "zod";
 import UserValidation from "../validation/user-validation.js";
 import Validation from "../validation/validation.js";
+import type { RequestUser } from "../types/index.js";
 import ResponseError from "../error/Response-Error.js";
 
 export default class UserController {
@@ -21,9 +22,17 @@ export default class UserController {
     }
   }
 
-  public static async GetUser(req: Request, res: Response, next: NextFunction) {
+  public static async GetUser(
+    req: RequestUser,
+    res: Response,
+    next: NextFunction
+  ) {
     try {
-      const response = await UserService.GetUser("asdasd");
+      const email = req.email;
+      if (!email) {
+        throw new ResponseError(403, "Unathorized! Please login first!");
+      }
+      const response = await UserService.GetUser(email);
       return res.status(response.code).json(response);
     } catch (error) {
       next(error);

@@ -59,9 +59,26 @@ export default class UserService {
   }
 
   public static async GetUser(email: string): Promise<ResponsePayload> {
+    const user = await prisma.user.findUnique({
+      where: {
+        email,
+      },
+      select: {
+        email: true,
+        username: true,
+        userDetail: {
+          select: {
+            birthday: true,
+            gender: true,
+            image_url: true,
+          },
+        },
+      },
+    });
+
     return {
       code: 200,
-      data: null,
+      data: user,
       message: "Success get user!",
       status: "success",
     };

@@ -1,12 +1,16 @@
-import type { NextFunction, Request, Response } from "express";
+import type { NextFunction, Response } from "express";
 import ResponseError from "../error/Response-Error.js";
-import type { ResponsePayload } from "../types/index.js";
+import type {
+  JwtDecoded,
+  RequestUser,
+  ResponsePayload,
+} from "../types/index.js";
 import jwt from "jsonwebtoken";
 import JWT from "../lib/jwt.js";
 import Encryption from "../lib/encryption.js";
 
 export const userMiddleware = (
-  req: Request,
+  req: RequestUser,
   res: Response,
   next: NextFunction
 ) => {
@@ -18,7 +22,8 @@ export const userMiddleware = (
 
     const tokenDecrypt = Encryption.decrypt(token);
 
-    const decoded = JWT.verify(tokenDecrypt);
+    const decoded = JWT.verify(tokenDecrypt) as JwtDecoded;
+    req.email = decoded.email;
     next();
   } catch (error) {
     if (error instanceof ResponseError) {
