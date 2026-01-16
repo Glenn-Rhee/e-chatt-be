@@ -38,4 +38,29 @@ export default class UserController {
       next(error);
     }
   }
+
+  public static async EditUser(
+    req: RequestUser,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const email = req.email;
+      if (!email) {
+        throw new ResponseError(403, "Unathorized! Please login first!");
+      }
+      const data = req.body as z.infer<typeof UserValidation.EDITSCHEMA>;
+      const dataUser: z.infer<typeof UserValidation.EDITSCHEMA> = {
+        ...data,
+        birthday: data.birthday ? new Date(data.birthday) : undefined,
+      };
+
+      Validation.validate(UserValidation.EDITSCHEMA, dataUser);
+
+      const response = await UserService.EditUser(data, email);
+      return res.status(response.code).json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
 }

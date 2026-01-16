@@ -10,7 +10,7 @@ const PORT = 8001 as const;
 
 app.use(
   cors({
-    origin: ["http:/localhost:3000"],
+    origin: ["http://localhost:3000"],
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,

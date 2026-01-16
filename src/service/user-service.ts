@@ -5,6 +5,7 @@ import type UserValidation from "../validation/user-validation.js";
 import { v4 } from "uuid";
 import JWT from "../lib/jwt.js";
 import Encryption from "../lib/encryption.js";
+import ResponseError from "../error/Response-Error.js";
 
 export default class UserService {
   public static async CreateUser(
@@ -13,6 +14,10 @@ export default class UserService {
     const user = await prisma.user.findUnique({
       where: {
         email: data.email,
+      },
+      select: {
+        username: true,
+        email: true,
       },
     });
 
@@ -80,6 +85,40 @@ export default class UserService {
       code: 200,
       data: user,
       message: "Success get user!",
+      status: "success",
+    };
+  }
+
+  public static async EditUser(
+    data: z.infer<typeof UserValidation.EDITSCHEMA>,
+    email: string
+  ): Promise<ResponsePayload> {
+    const user = await prisma.user.findUnique({
+      where: { email },
+      select: { email: true },
+    });
+
+    if (!user) {
+      throw new ResponseError(404, "User is not found!");
+    }
+
+    await prisma.user.update({
+      where: { email: user.email },
+      data: {
+        username: data.username,
+        userDetail: {
+          update: {
+            birthday: data.birthday || "",
+            gender: data.gender,
+          },
+        },
+      },
+    });
+
+    return {
+      code: 201,
+      data: null,
+      message: "Successfully edit user!",
       status: "success",
     };
   }
