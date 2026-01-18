@@ -10,8 +10,9 @@ export default class UserController {
   public static async CreateUser(
     req: Request,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
   ) {
+    console.log("POST /user");
     try {
       const data = req.body as z.infer<typeof UserValidation.CREATEUSER>;
       Validation.validate(UserValidation.CREATEUSER, data);
@@ -25,8 +26,9 @@ export default class UserController {
   public static async GetUser(
     req: RequestUser,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
   ) {
+    console.log("GET /user");
     try {
       const email = req.email;
       if (!email) {
@@ -42,8 +44,9 @@ export default class UserController {
   public static async EditUser(
     req: RequestUser,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
   ) {
+    console.log("PATCH /user");
     try {
       const email = req.email;
       if (!email) {
@@ -58,6 +61,28 @@ export default class UserController {
       Validation.validate(UserValidation.EDITSCHEMA, dataUser);
 
       const response = await UserService.EditUser(data, email);
+      return res.status(response.code).json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public static async EditImage(
+    req: RequestUser,
+    res: Response,
+    next: NextFunction,
+  ) {
+    console.log("PATCH /user/image");
+    try {
+      const email = req.email;
+      if (!email) {
+        throw new ResponseError(403, "Unathorized! Please login first!");
+      }
+
+      const data = req.body as z.infer<typeof UserValidation.EDITIMAGE>;
+      Validation.validate(UserValidation.EDITIMAGE, data);
+
+      const response = await UserService.EditImageUser(data, email);
       return res.status(response.code).json(response);
     } catch (error) {
       next(error);

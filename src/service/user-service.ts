@@ -9,7 +9,7 @@ import ResponseError from "../error/Response-Error.js";
 
 export default class UserService {
   public static async CreateUser(
-    data: z.infer<typeof UserValidation.CREATEUSER>
+    data: z.infer<typeof UserValidation.CREATEUSER>,
   ): Promise<ResponsePayload> {
     const user = await prisma.user.findUnique({
       where: {
@@ -91,7 +91,7 @@ export default class UserService {
 
   public static async EditUser(
     data: z.infer<typeof UserValidation.EDITSCHEMA>,
-    email: string
+    email: string,
   ): Promise<ResponsePayload> {
     const user = await prisma.user.findUnique({
       where: { email },
@@ -120,6 +120,32 @@ export default class UserService {
       data: null,
       message: "Successfully edit user!",
       status: "success",
+    };
+  }
+
+  public static async EditImageUser(
+    data: z.infer<typeof UserValidation.EDITIMAGE>,
+    email: string,
+  ): Promise<ResponsePayload> {
+    const isRegist = await prisma.user.findUnique({
+      where: { email: email },
+      select: { id: true },
+    });
+
+    if (!isRegist) {
+      throw new ResponseError(404, "Oops! User is not found!");
+    }
+
+    await prisma.userDetail.update({
+      where: { userId: isRegist.id },
+      data: { image_url: data.imageUrl },
+    });
+
+    return {
+      status: "success",
+      code: 201,
+      data: null,
+      message: "Success!",
     };
   }
 }

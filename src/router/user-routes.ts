@@ -6,3 +6,4 @@ export const userRoutes = Express.Router();
 userRoutes.post("/user", UserController.CreateUser);
 userRoutes.get("/user", userMiddleware, UserController.GetUser);
 userRoutes.patch("/user", userMiddleware, UserController.EditUser);
+userRoutes.patch("/user/image", userMiddleware, UserController.EditImage);

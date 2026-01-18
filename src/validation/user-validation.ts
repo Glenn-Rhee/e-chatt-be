@@ -16,4 +16,8 @@ export default class UserValidation {
     }),
     birthday: z.date({ error: "Please fill birthday properly!" }).optional(),
   });
+
+  static readonly EDITIMAGE = z.object({
+    imageUrl: z.url({ error: "Please fill image url properly!" }),
+  });
 }
