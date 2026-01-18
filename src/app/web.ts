@@ -4,7 +4,7 @@ import cookieParser from "cookie-parser";
 import { userRoutes } from "../router/user-routes.js";
 import { notFound } from "../middleware/notFound.js";
 import { errorMiddleware } from "../middleware/error-middleware.js";
-
+import morgan from "morgan";
 const app = express();
 const PORT = 8001 as const;
 
@@ -14,11 +14,13 @@ app.use(
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
-  })
+  }),
 );
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+
+app.use(morgan(":method :url :status :response-time ms"));
 
 app.use(userRoutes);
 
