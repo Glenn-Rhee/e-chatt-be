@@ -53,4 +53,28 @@ export default class ChattService {
       message: "Successfully create message",
     };
   }
+
+  static async getChatts(email: string): Promise<ResponsePayload> {
+    const user = await prisma.user.findUnique({
+      where: { email },
+      select: { id: true },
+    });
+
+    if (!user) {
+      throw new ResponseError(404, "User is not found!");
+    }
+
+    const conversations = await prisma.conversation.findMany({
+      where: { users: { some: { id: user.id } } },
+    });
+
+    console.log(conversations);
+
+    return {
+      code: 200,
+      data: null,
+      message: "Successfully get conversations!",
+      status: "success",
+    };
+  }
 }

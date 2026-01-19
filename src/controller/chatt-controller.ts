@@ -22,4 +22,17 @@ export default class ChattController {
       next(error);
     }
   }
+
+  static async getChatts(req: RequestUser, res: Response, next: NextFunction) {
+    try {
+      const email = req.email;
+      if (!email) {
+        throw new ResponseError(403, "Unathorized! Login first");
+      }
+      const response = await ChattService.getChatts(email);
+      return res.status(response.code).json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
 }
