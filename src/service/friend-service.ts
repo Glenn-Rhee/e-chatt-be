@@ -160,4 +160,37 @@ export default class FriendService {
       message: "Success change status!",
     };
   }
+
+  static async getFriendsAction(email: string): Promise<ResponsePayload> {
+    const user = await prisma.user.findUnique({
+      where: { email },
+      select: { id: true },
+    });
+    if (!user) {
+      throw new ResponseError(404, "User is not found!");
+    }
+
+    const relations = await prisma.friendRequest.findMany({
+      where: { receiverId: user.id },
+      select: {
+        requester: {
+          select: {
+            username: true,
+            email: true,
+            userDetail: {
+              select: { image_url: true },
+            },
+          },
+        },
+        id: true,
+      },
+    });
+
+    return {
+      code: 200,
+      data: relations,
+      message: "Successfully get request friend",
+      status: "success",
+    };
+  }
 }
