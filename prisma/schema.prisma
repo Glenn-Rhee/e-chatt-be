@@ -11,6 +11,7 @@ generator client {
 
 datasource db {
   provider = "mysql"
+  url      = env("DATABASE_URL")
 }
 
 enum Gender {
@@ -20,12 +21,14 @@ enum Gender {
 }
 
 model User {
-  id         String      @id @unique
-  username   String
-  email      String      @unique
-  created_at DateTime    @default(now())
-  updated_at DateTime    @updatedAt
-  userDetail UserDetail?
+  id            String         @id @unique
+  username      String
+  email         String         @unique
+  created_at    DateTime       @default(now())
+  updated_at    DateTime       @updatedAt
+  userDetail    UserDetail?
+  conversations Conversation[] @relation("ConversationUsers")
+  messages      Message[]
 }
 
 model UserDetail {
@@ -35,4 +38,23 @@ model UserDetail {
   image_url String?
   User      User      @relation(fields: [userId], references: [id])
   userId    String    @unique
+}
+
+model Message {
+  id             String       @id @unique @default(uuid())
+  content        String
+  senderId       String
+  sender         User         @relation(fields: [senderId], references: [id])
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id])
+
+  createdAt DateTime @default(now())
+  isRead    Boolean  @default(false)
+}
+
+model Conversation {
+  id        String    @id @unique @default(uuid())
+  users     User[]    @relation("ConversationUsers")
+  messages  Message[]
+  createdAt DateTime  @default(now())
 }
