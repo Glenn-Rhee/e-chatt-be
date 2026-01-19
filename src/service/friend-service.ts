@@ -2,6 +2,8 @@ import type { ResponsePayload } from "../types/index.js";
 import { prisma } from "../lib/prisma.js";
 import ResponseError from "../error/Response-Error.js";
 import type { FriendStatus } from "../../generated/prisma/enums.js";
+import type z from "zod";
+import type FriendValidation from "../validation/friend-validation.js";
 
 export default class FriendService {
   static async findUser(
@@ -40,8 +42,6 @@ export default class FriendService {
         status: true,
       },
     });
-
-    console.log(relations);
 
     const relationMap = new Map<string, { status: FriendStatus }>();
     for (const relation of relations) {
@@ -117,6 +117,47 @@ export default class FriendService {
       code,
       data: null,
       message: msgResponse,
+    };
+  }
+
+  static async actionFriend(
+    data: z.infer<typeof FriendValidation.ACTIONFRIEND>,
+    email: string,
+  ): Promise<ResponsePayload> {
+    const user = await prisma.user.findUnique({
+      where: { email },
+      select: { id: true },
+    });
+    if (!user) {
+      throw new ResponseError(404, "User is not found!");
+    }
+
+    const relation = await prisma.friendRequest.findFirst({
+      where: {
+        requesterId: data.userIdTarget,
+        receiverId: user.id,
+      },
+      select: { id: true },
+    });
+
+    if (!relation) {
+      throw new ResponseError(404, "Oops request friend is not found!");
+    }
+
+    await prisma.friendRequest.update({
+      where: {
+        id: relation?.id,
+      },
+      data: {
+        status: data.accept ? "ACCEPTED" : "REJECTED",
+      },
+    });
+
+    return {
+      status: "success",
+      code: 200,
+      data: null,
+      message: "Success change status!",
     };
   }
 }

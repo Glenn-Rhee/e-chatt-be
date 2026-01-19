@@ -38,4 +38,23 @@ export default class FriendController {
       next(error);
     }
   }
+
+  static async actionFriend(
+    req: RequestUser,
+    res: Response,
+    next: NextFunction,
+  ) {
+    try {
+      const email = req.email;
+      if (!email) {
+        throw new ResponseError(403, "Unthorized! Login first!");
+      }
+
+      const data = Validation.validate(FriendValidation.ACTIONFRIEND, req.body);
+      const response = await FriendService.actionFriend(data, email);
+      return res.status(response.code).json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
 }

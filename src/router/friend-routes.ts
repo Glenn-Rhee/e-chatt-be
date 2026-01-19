@@ -6,3 +6,4 @@ export const friendRoutes = Router();
 
 friendRoutes.get("/friend", userMiddleware, FriendController.findUser);
 friendRoutes.post("/friend", userMiddleware, FriendController.addFriend);
+friendRoutes.post("/friend/actions", userMiddleware, FriendController.actionFriend)
