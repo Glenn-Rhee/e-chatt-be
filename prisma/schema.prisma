@@ -19,15 +19,24 @@ enum Gender {
   UNKNOWN
 }
 
+enum FriendStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  BLOCKED
+}
+
 model User {
-  id            String         @id @unique
-  username      String
-  email         String         @unique
-  created_at    DateTime       @default(now())
-  updated_at    DateTime       @updatedAt
-  userDetail    UserDetail?
-  conversations Conversation[] @relation("ConversationUsers")
-  messages      Message[]
+  id               String          @id @unique
+  username         String
+  email            String          @unique
+  created_at       DateTime        @default(now())
+  updated_at       DateTime        @updatedAt
+  userDetail       UserDetail?
+  conversations    Conversation[]  @relation("ConversationUsers")
+  messages         Message[]
+  sentRequests     FriendRequest[] @relation("Requester")
+  receivedRequests FriendRequest[] @relation("Receiver")
 }
 
 model UserDetail {
@@ -56,4 +65,17 @@ model Conversation {
   users     User[]    @relation("ConversationUsers")
   messages  Message[]
   createdAt DateTime  @default(now())
+}
+
+model FriendRequest {
+  id          String       @id @default(uuid())
+  requesterId String
+  requester   User         @relation("Requester", fields: [requesterId], references: [id])
+  receiverId  String
+  receiver    User         @relation("Receiver", fields: [receiverId], references: [id])
+  status      FriendStatus @default(PENDING)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@unique([requesterId, receiverId])
 }
