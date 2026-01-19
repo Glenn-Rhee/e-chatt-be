@@ -6,6 +6,7 @@ import { notFound } from "../middleware/notFound.js";
 import { errorMiddleware } from "../middleware/error-middleware.js";
 import morgan from "morgan";
 import { chattRoutes } from "../router/chatt-routes.js";
+import { friendRoutes } from "../router/friend-routes.js";
 const app = express();
 const PORT = 8001 as const;
 
@@ -27,6 +28,7 @@ app.use(morgan(":method :url :status :response-time ms"));
 // Routes
 app.use(userRoutes);
 app.use(chattRoutes);
+app.use(friendRoutes);
 
 // Middleware
 app.use(notFound);
