@@ -1,4 +1,3 @@
-import type z from "zod";
 import type { ResponsePayload } from "../types/index.js";
 import { prisma } from "../lib/prisma.js";
 import ResponseError from "../error/Response-Error.js";
@@ -19,7 +18,10 @@ export default class FriendService {
     }
 
     const users = await prisma.user.findMany({
-      where: { username: { contains: username } },
+      where: {
+        username: { contains: username.toLowerCase().trim() },
+        AND: { id: { not: user.id } },
+      },
       select: {
         userDetail: { select: { image_url: true } },
         id: true,
@@ -30,7 +32,7 @@ export default class FriendService {
 
     const relations = await prisma.friendRequest.findMany({
       where: {
-        OR: [{ requesterId: user.id, receiverId: user.id }],
+        requesterId: user.id,
       },
       select: {
         requesterId: true,
@@ -38,6 +40,8 @@ export default class FriendService {
         status: true,
       },
     });
+
+    console.log(relations);
 
     const relationMap = new Map<string, { status: FriendStatus }>();
     for (const relation of relations) {
@@ -63,6 +67,56 @@ export default class FriendService {
       code: 200,
       data: result,
       message: "Successfully get users!",
+    };
+  }
+
+  static async addFriend(
+    receiverId: string,
+    emailSender: string,
+  ): Promise<ResponsePayload> {
+    const user = await prisma.user.findUnique({
+      where: { email: emailSender },
+      select: { id: true },
+    });
+
+    if (!user) {
+      throw new ResponseError(404, "User is not found!");
+    }
+
+    const friend = await prisma.friendRequest.findFirst({
+      where: { receiverId, requesterId: user.id },
+    });
+
+    let msgResponse = "";
+    let code = 200;
+
+    if (friend) {
+      if (friend.status === "ACCEPTED") {
+        await prisma.friendRequest.delete({
+          where: { id: friend.id },
+        });
+
+        msgResponse = "Successfully delete friend!";
+        code = 204;
+      } else if (friend.status === "PENDING") {
+        throw new ResponseError(400, "Please wait until accepted!");
+      }
+    } else {
+      await prisma.friendRequest.create({
+        data: {
+          requesterId: user.id,
+          receiverId,
+        },
+      });
+      msgResponse = "Successfully add friend!";
+      code = 201;
+    }
+
+    return {
+      status: "success",
+      code,
+      data: null,
+      message: msgResponse,
     };
   }
 }
