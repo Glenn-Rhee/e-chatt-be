@@ -37,6 +37,8 @@ model User {
   messages         Message[]
   sentRequests     FriendRequest[] @relation("Requester")
   receivedRequests FriendRequest[] @relation("Receiver")
+  friendshipA      FriendShip[]    @relation("FriendshipUserA")
+  friendShipB      FriendShip[]    @relation("FriendshipUserB")
 }
 
 model UserDetail {
@@ -78,4 +80,15 @@ model FriendRequest {
   updatedAt   DateTime     @updatedAt
 
   @@unique([requesterId, receiverId])
+}
+
+model FriendShip {
+  id        String   @id @default(uuid())
+  userIdA   String
+  userIdB   String
+  userA     User     @relation("FriendshipUserA", fields: [userIdA], references: [id])
+  userB     User     @relation("FriendshipUserB", fields: [userIdB], references: [id])
+  createdAt DateTime @default(now())
+
+  @@unique([userIdA, userIdB])
 }

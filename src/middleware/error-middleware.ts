@@ -7,7 +7,7 @@ export const errorMiddleware = (
   error: Error,
   _req: Request,
   res: Response,
-  _next: NextFunction
+  _next: NextFunction,
 ) => {
   let response: ResponsePayload;
   if (error instanceof ZodError) {

@@ -83,40 +83,69 @@ export default class FriendService {
       throw new ResponseError(404, "User is not found!");
     }
 
-    const friend = await prisma.friendRequest.findFirst({
-      where: { receiverId, requesterId: user.id },
+    const userA = user.id;
+    const userB = receiverId;
+    const [a, b] = userA < userB ? [userA, userB] : [userB, userA];
+    const friendShip = await prisma.friendShip.findFirst({
+      where: {
+        OR: [
+          { userIdA: a, userIdB: b },
+          { userIdA: b, userIdB: a },
+        ],
+      },
     });
 
-    let msgResponse = "";
-    let code = 200;
+    const friendRequested = await prisma.friendRequest.findFirst({
+      where: {
+        requesterId: user.id,
+        receiverId,
+      },
+    });
 
-    if (friend) {
-      if (friend.status === "ACCEPTED") {
-        await prisma.friendRequest.delete({
-          where: { id: friend.id },
-        });
-
-        msgResponse = "Successfully delete friend!";
-        code = 204;
-      } else if (friend.status === "PENDING") {
-        throw new ResponseError(400, "Please wait until accepted!");
-      }
-    } else {
-      await prisma.friendRequest.create({
-        data: {
-          requesterId: user.id,
-          receiverId,
+    if (friendShip && friendRequested) {
+      await prisma.friendRequest.delete({
+        where: { id: friendRequested.id },
+      });
+      await prisma.friendShip.delete({
+        where: {
+          id: friendShip.id,
         },
       });
-      msgResponse = "Successfully add friend!";
-      code = 201;
+
+      return {
+        status: "success",
+        code: 201,
+        data: null,
+        message: "Successfully removed friend!",
+      };
     }
+
+    const friendRequest = await prisma.friendRequest.findFirst({
+      where: {
+        OR: [
+          { requesterId: userA, receiverId: userB },
+          { requesterId: userB, receiverId: userA },
+        ],
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    if (friendRequest?.status === "PENDING") {
+      throw new ResponseError(400, "Friend request still pending");
+    }
+
+    await prisma.friendRequest.create({
+      data: {
+        requesterId: userA,
+        receiverId: userB,
+      },
+    });
 
     return {
       status: "success",
-      code,
+      code: 201,
       data: null,
-      message: msgResponse,
+      message: "Friend request sended!",
     };
   }
 
@@ -153,6 +182,26 @@ export default class FriendService {
       },
     });
 
+    if (data.accept) {
+      const isAlreadyFriendShip = await prisma.friendShip.findFirst({
+        where: {
+          userIdA: data.userIdTarget,
+          userIdB: user.id,
+        },
+        select: { id: true },
+      });
+
+      if (isAlreadyFriendShip) {
+        throw new ResponseError(400, "Already accepted!");
+      }
+
+      // ID A : Yang ngerequest
+      // ID B : Yang nge approve
+      await prisma.friendShip.create({
+        data: { userIdA: data.userIdTarget, userIdB: user.id },
+      });
+    }
+
     return {
       status: "success",
       code: 200,
@@ -171,10 +220,11 @@ export default class FriendService {
     }
 
     const relations = await prisma.friendRequest.findMany({
-      where: { receiverId: user.id },
+      where: { receiverId: user.id, status: "PENDING" },
       select: {
         requester: {
           select: {
+            id: true,
             username: true,
             email: true,
             userDetail: {
