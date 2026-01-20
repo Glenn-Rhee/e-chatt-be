@@ -7,9 +7,15 @@ import { errorMiddleware } from "../middleware/error-middleware.js";
 import morgan from "morgan";
 import { chattRoutes } from "../router/chatt-routes.js";
 import { friendRoutes } from "../router/friend-routes.js";
+import http from "http";
+import { initSocket } from "../lib/socket.js";
+import { setupSocketHandlers } from "../lib/socket-handler.js";
+
 const app = express();
 const PORT = 8001 as const;
-
+const server = http.createServer(app);
+const io = initSocket(server);
+setupSocketHandlers(io);
 app.use(
   cors({
     origin: ["http://localhost:3000"],

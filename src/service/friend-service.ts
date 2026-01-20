@@ -4,6 +4,7 @@ import ResponseError from "../error/Response-Error.js";
 import type { FriendStatus } from "../../generated/prisma/enums.js";
 import type z from "zod";
 import type FriendValidation from "../validation/friend-validation.js";
+import { getIO } from "../lib/socket.js";
 
 export default class FriendService {
   static async findUser(
@@ -112,6 +113,8 @@ export default class FriendService {
         },
       });
 
+      getIO().to(receiverId).emit("friend:remove", { requesterId: user.id });
+
       return {
         status: "success",
         code: 201,
@@ -140,6 +143,8 @@ export default class FriendService {
         receiverId: userB,
       },
     });
+
+    getIO().to(receiverId).emit("friend:request", { requesterId: user.id });
 
     return {
       status: "success",
