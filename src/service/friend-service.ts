@@ -159,6 +159,7 @@ export default class FriendService {
       where: {
         requesterId: user.id,
         receiverId,
+        status: "PENDING",
       },
       select: {
         id: true,
@@ -211,12 +212,16 @@ export default class FriendService {
       throw new ResponseError(404, "Oops request friend is not found!");
     }
 
-    await prisma.friendRequest.update({
+    const friendReqUpdated = await prisma.friendRequest.update({
       where: {
         id: relation?.id,
       },
       data: {
         status: data.accept ? "ACCEPTED" : "REJECTED",
+      },
+      select: {
+        status: true,
+        id: true,
       },
     });
 
@@ -239,6 +244,37 @@ export default class FriendService {
         data: { userIdA: data.userIdTarget, userIdB: user.id },
       });
     }
+
+    const friendRequestes = await prisma.friendRequest.findMany({
+      where: {
+        requesterId: data.userIdTarget,
+        receiverId: user.id,
+        status: "PENDING",
+      },
+      select: {
+        id: true,
+        requester: {
+          select: {
+            id: true,
+            username: true,
+            email: true,
+            userDetail: {
+              select: {
+                image_url: true,
+              },
+            },
+          },
+        },
+      },
+    });
+    getIO()
+      .to(data.userIdTarget)
+      .emit("friend:request:resolved", {
+        data: {
+          status: friendReqUpdated.status,
+        },
+      });
+    getIO().to(user.id).emit("friend:update", { data: friendRequestes });
 
     return {
       status: "success",

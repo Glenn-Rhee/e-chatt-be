@@ -24,7 +24,5 @@ export function setupSocketHandlers(io: Server) {
     }
 
     socket.join(dataUser.id);
-
-    console.log("User connected", user.username);
   });
 }
