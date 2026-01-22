@@ -16,6 +16,11 @@ const PORT = 8001 as const;
 const server = http.createServer(app);
 const io = initSocket(server);
 setupSocketHandlers(io);
+
+server.listen(8001, () => {
+  console.log("Socket server running on http:/localhost:8001");
+});
+
 app.use(
   cors({
     origin: ["http://localhost:3000"],

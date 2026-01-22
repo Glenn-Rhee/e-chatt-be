@@ -137,14 +137,47 @@ export default class FriendService {
       throw new ResponseError(400, "Friend request still pending");
     }
 
-    await prisma.friendRequest.create({
-      data: {
-        requesterId: userA,
-        receiverId: userB,
+    if (friendRequest) {
+      await prisma.friendRequest.update({
+        where: {
+          id: friendRequest.id,
+        },
+        data: {
+          status: "PENDING",
+        },
+      });
+    } else {
+      await prisma.friendRequest.create({
+        data: {
+          requesterId: userA,
+          receiverId: userB,
+        },
+      });
+    }
+
+    const friendRequestes = await prisma.friendRequest.findMany({
+      where: {
+        requesterId: user.id,
+        receiverId,
+      },
+      select: {
+        id: true,
+        requester: {
+          select: {
+            id: true,
+            username: true,
+            email: true,
+            userDetail: {
+              select: {
+                image_url: true,
+              },
+            },
+          },
+        },
       },
     });
 
-    getIO().to(receiverId).emit("friend:request", { requesterId: user.id });
+    getIO().to(receiverId).emit("friend:request", { data: friendRequestes });
 
     return {
       status: "success",
