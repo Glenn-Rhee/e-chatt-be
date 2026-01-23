@@ -35,7 +35,14 @@ export default class FriendService {
 
     const relations = await prisma.friendRequest.findMany({
       where: {
-        requesterId: user.id,
+        OR: [
+          {
+            requesterId: user.id,
+          },
+          {
+            receiverId: user.id,
+          },
+        ],
       },
       select: {
         requesterId: true,
