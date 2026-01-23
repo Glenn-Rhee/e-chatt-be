@@ -16,3 +16,4 @@ friendRoutes.get(
   userMiddleware,
   FriendController.getFriendsAction,
 );
+friendRoutes.get("/friendship", userMiddleware, FriendController.getFriendship)

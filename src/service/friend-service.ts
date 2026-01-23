@@ -317,4 +317,70 @@ export default class FriendService {
       status: "success",
     };
   }
+
+  static async getFriendship(email: string): Promise<ResponsePayload> {
+    const user = await prisma.user.findUnique({
+      where: { email },
+      select: { id: true },
+    });
+    if (!user) {
+      throw new ResponseError(404, "User is not found!");
+    }
+
+    const friendshipUsers = await prisma.friendShip.findMany({
+      where: {
+        OR: [
+          {
+            userIdA: user.id,
+          },
+          {
+            userIdB: user.id,
+          },
+        ],
+      },
+      select: {
+        id: true,
+        userA: {
+          select: {
+            id: true,
+            username: true,
+            email: true,
+            userDetail: {
+              select: {
+                image_url: true,
+              },
+            },
+          },
+        },
+        userB: {
+          select: {
+            id: true,
+            username: true,
+            email: true,
+            userDetail: {
+              select: {
+                image_url: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const friends = friendshipUsers.map((friendship) => {
+      const isUserA = friendship.userA.id === user.id;
+
+      return {
+        friendshipId: friendship.id,
+        friend: isUserA ? friendship.userB : friendship.userB,
+      };
+    });
+
+    return {
+      code: 200,
+      data: friends,
+      message: "Successfully get friendship",
+      status: "success",
+    };
+  }
 }

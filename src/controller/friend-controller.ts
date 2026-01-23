@@ -75,4 +75,22 @@ export default class FriendController {
       next(error);
     }
   }
+
+  static async getFriendship(
+    req: RequestUser,
+    res: Response,
+    next: NextFunction,
+  ) {
+    try {
+      const email = req.email;
+      if (!email) {
+        throw new ResponseError(403, "Unthorized! Login first!");
+      }
+
+      const response = await FriendService.getFriendship(email);
+      return res.status(response.code).json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
 }
