@@ -321,7 +321,7 @@ export default class FriendService {
   static async getFriendship(email: string): Promise<ResponsePayload> {
     const user = await prisma.user.findUnique({
       where: { email },
-      select: { id: true },
+      select: { id: true, username: true },
     });
     if (!user) {
       throw new ResponseError(404, "User is not found!");
@@ -372,7 +372,7 @@ export default class FriendService {
 
       return {
         friendshipId: friendship.id,
-        friend: isUserA ? friendship.userB : friendship.userB,
+        friend: isUserA ? friendship.userB : friendship.userA,
       };
     });
 
