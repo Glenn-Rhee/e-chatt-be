@@ -68,13 +68,85 @@ export default class ChattService {
       where: { users: { some: { id: user.id } } },
     });
 
-    console.log(conversations);
-
     return {
       code: 200,
       data: null,
       message: "Successfully get conversations!",
       status: "success",
+    };
+  }
+
+  static async createConversation(
+    email: string,
+    idUserTarget: string,
+  ): Promise<ResponsePayload> {
+    const userData = await prisma.user.findUnique({
+      where: { email },
+      select: { id: true },
+    });
+
+    const userDataTarget = await prisma.user.findUnique({
+      where: { id: idUserTarget },
+      select: { id: true },
+    });
+
+    if (!userData || !userDataTarget) {
+      throw new ResponseError(404, "User sender or receiver is not found!");
+    }
+
+    const friendShip = await prisma.friendShip.findFirst({
+      where: {
+        OR: [
+          {
+            userIdA: userData.id,
+            userIdB: userDataTarget.id,
+          },
+          {
+            userIdA: userDataTarget.id,
+            userIdB: userData.id,
+          },
+        ],
+      },
+      select: { id: true },
+    });
+
+    if (!friendShip) {
+      throw new ResponseError(400, "Oops user is not have a friendship!");
+    }
+
+    let conversation = await prisma.conversation.findFirst({
+      where: {
+        users: {
+          every: {
+            id: { in: [userData.id, userDataTarget.id] },
+          },
+        },
+      },
+      select: { id: true },
+    });
+
+    if (!conversation) {
+      conversation = await prisma.conversation.create({
+        data: {
+          users: {
+            connect: [{ id: userData.id }, { id: userDataTarget.id }],
+          },
+        },
+        select: { id: true },
+      });
+    }
+
+    const dataMessages = await prisma.message.findMany({
+      where: {
+        conversationId: conversation.id,
+      },
+    });
+
+    return {
+      status: "success",
+      code: 201,
+      data: dataMessages,
+      message: "Successfully!",
     };
   }
 }

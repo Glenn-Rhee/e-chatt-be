@@ -35,4 +35,30 @@ export default class ChattController {
       next(error);
     }
   }
+
+  static async createConversation(
+    req: RequestUser,
+    res: Response,
+    next: NextFunction,
+  ) {
+    try {
+      const email = req.email;
+      if (!email) {
+        throw new ResponseError(403, "Unathorized! Login first");
+      }
+
+      const idUserTarget = req.body.idUserTarget;
+      if (typeof idUserTarget !== "string") {
+        throw new ResponseError(400, "Id user of target is required!");
+      }
+
+      const response = await ChattService.createConversation(
+        email,
+        idUserTarget,
+      );
+      return res.status(response.code).json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
 }
