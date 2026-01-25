@@ -66,11 +66,45 @@ export default class ChattService {
 
     const conversations = await prisma.conversation.findMany({
       where: { users: { some: { id: user.id } } },
+      select: {
+        id: true,
+        users: {
+          where: {
+            id: { not: user.id },
+          },
+          select: {
+            id: true,
+            username: true,
+            email: true,
+            userDetail: {
+              select: {
+                image_url: true,
+              },
+            },
+          },
+        },
+        messages: {
+          orderBy: { createdAt: "desc" },
+          take: 1,
+          select: {
+            content: true,
+            createdAt: true,
+            isRead: true,
+            senderId: true,
+          },
+        },
+      },
     });
+
+    const data = conversations.map((conv) => ({
+      convId: conv.id,
+      userFrom: conv.users[0],
+      message: conv.messages[0],
+    }));
 
     return {
       code: 200,
-      data: null,
+      data,
       message: "Successfully get conversations!",
       status: "success",
     };
