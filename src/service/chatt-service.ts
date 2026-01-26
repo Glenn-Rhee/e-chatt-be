@@ -94,6 +94,9 @@ export default class ChattService {
           },
         },
       },
+      orderBy: {
+        messages: { _count: "desc" },
+      },
     });
 
     const data = conversations.map((conv) => ({
