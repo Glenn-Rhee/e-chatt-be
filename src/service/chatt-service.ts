@@ -3,6 +3,7 @@ import type { ResponsePayload } from "../types/index.js";
 import type ChattValidation from "../validation/chatt-validation.js";
 import { prisma } from "../lib/prisma.js";
 import ResponseError from "../error/Response-Error.js";
+import { getIO } from "../lib/socket.js";
 
 export default class ChattService {
   static async sendMessage(
@@ -44,7 +45,22 @@ export default class ChattService {
         senderId: userSender.id,
         conversationId: conversation.id,
       },
+      select: {
+        id: true,
+        content: true,
+        createdAt: true,
+        isRead: true,
+        senderId: true,
+      },
     });
+
+    const messages = await this.findFirstConversation(
+      userSender.id,
+      data.targetId,
+    );
+
+    getIO().to(data.targetId).emit("message:incoming", messages);
+    getIO().to(userSender.id).emit("message:outgoing", messages);
 
     return {
       status: "success",
@@ -75,35 +91,10 @@ export default class ChattService {
     if (!userTarget) {
       throw new ResponseError(404, "User target is not found!");
     }
-
-    const conversations = await prisma.conversation.findFirst({
-      where: {
-        AND: [
-          {
-            users: { some: { id: userRequest.id } },
-          },
-          {
-            users: { some: { id: userTarget.id } },
-          },
-        ],
-      },
-      select: {
-        id: true,
-        messages: {
-          select: {
-            id: true,
-            content: true,
-            createdAt: true,
-            isRead: true,
-            senderId: true,
-          },
-          orderBy: {
-            createdAt: "asc",
-          },
-        },
-      },
-    });
-
+    const conversations = await this.findFirstConversation(
+      userRequest.id,
+      userTarget.id,
+    );
     return {
       status: "success",
       code: 200,
@@ -170,6 +161,41 @@ export default class ChattService {
       message: "Successfully get conversations!",
       status: "success",
     };
+  }
+
+  static async findFirstConversation(
+    userRequestId: string,
+    userTargetId: string,
+  ) {
+    const conversations = await prisma.conversation.findFirst({
+      where: {
+        AND: [
+          {
+            users: { some: { id: userRequestId } },
+          },
+          {
+            users: { some: { id: userTargetId } },
+          },
+        ],
+      },
+      select: {
+        id: true,
+        messages: {
+          select: {
+            id: true,
+            content: true,
+            createdAt: true,
+            isRead: true,
+            senderId: true,
+          },
+          orderBy: {
+            createdAt: "asc",
+          },
+        },
+      },
+    });
+
+    return conversations;
   }
 
   static async createConversation(
