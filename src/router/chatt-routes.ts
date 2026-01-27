@@ -11,3 +11,4 @@ chattRoutes.post(
   userMiddleware,
   ChattController.createConversation,
 );
+chattRoutes.get("/message", userMiddleware, ChattController.getMessage)

@@ -11,11 +11,12 @@ export default class UserService {
   public static async CreateUser(
     data: z.infer<typeof UserValidation.CREATEUSER>,
   ): Promise<ResponsePayload> {
-    const user = await prisma.user.findUnique({
+    let user = await prisma.user.findUnique({
       where: {
         email: data.email,
       },
       select: {
+        id: true,
         username: true,
         email: true,
       },
@@ -24,24 +25,29 @@ export default class UserService {
     let token: string;
 
     if (!user) {
-      const createdUser = await prisma.user.create({
+      user = await prisma.user.create({
         data: {
           email: data.email,
           id: `U-${v4().substring(0, 8)}`,
           username: data.username,
         },
+        select: {
+          id: true,
+          username: true,
+          email: true,
+        },
       });
 
       token = JWT.signin({
-        username: createdUser.username,
-        email: createdUser.email,
+        username: user.username,
+        email: user.email,
       });
 
       await prisma.userDetail.create({
         data: {
           gender: "UNKNOWN",
           image_url: data.imageUrl,
-          userId: createdUser.id,
+          userId: user.id,
         },
       });
     } else {
@@ -57,6 +63,7 @@ export default class UserService {
       code: 200,
       data: {
         token: tokenEncrypt,
+        id: user.id,
       },
       message: "Success create user!",
       status: "success",

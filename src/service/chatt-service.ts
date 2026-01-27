@@ -54,6 +54,64 @@ export default class ChattService {
     };
   }
 
+  static async getMessage(
+    email: string,
+    userIdTarget: string,
+  ): Promise<ResponsePayload> {
+    const userRequest = await prisma.user.findUnique({
+      where: { email },
+      select: { id: true },
+    });
+
+    if (!userRequest) {
+      throw new ResponseError(404, "User request is not found!");
+    }
+
+    const userTarget = await prisma.user.findUnique({
+      where: { id: userIdTarget },
+      select: { id: true },
+    });
+
+    if (!userTarget) {
+      throw new ResponseError(404, "User target is not found!");
+    }
+
+    const conversations = await prisma.conversation.findFirst({
+      where: {
+        AND: [
+          {
+            users: { some: { id: userRequest.id } },
+          },
+          {
+            users: { some: { id: userTarget.id } },
+          },
+        ],
+      },
+      select: {
+        id: true,
+        messages: {
+          select: {
+            id: true,
+            content: true,
+            createdAt: true,
+            isRead: true,
+            senderId: true,
+          },
+          orderBy: {
+            createdAt: "asc",
+          },
+        },
+      },
+    });
+
+    return {
+      status: "success",
+      code: 200,
+      data: conversations,
+      message: "Successfully get message",
+    };
+  }
+
   static async getChatts(email: string): Promise<ResponsePayload> {
     const user = await prisma.user.findUnique({
       where: { email },
@@ -87,6 +145,7 @@ export default class ChattService {
           orderBy: { createdAt: "desc" },
           take: 1,
           select: {
+            id: true,
             content: true,
             createdAt: true,
             isRead: true,

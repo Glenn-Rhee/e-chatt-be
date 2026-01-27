@@ -12,7 +12,6 @@ export default class UserController {
     res: Response,
     next: NextFunction,
   ) {
-    console.log("POST /user");
     try {
       const data = req.body as z.infer<typeof UserValidation.CREATEUSER>;
       Validation.validate(UserValidation.CREATEUSER, data);
@@ -28,7 +27,6 @@ export default class UserController {
     res: Response,
     next: NextFunction,
   ) {
-    console.log("GET /user");
     try {
       const email = req.email;
       if (!email) {
@@ -46,7 +44,6 @@ export default class UserController {
     res: Response,
     next: NextFunction,
   ) {
-    console.log("PATCH /user");
     try {
       const email = req.email;
       if (!email) {
