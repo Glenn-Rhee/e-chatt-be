@@ -62,6 +62,9 @@ export default class ChattService {
     getIO().to(data.targetId).emit("message:incoming", messages);
     getIO().to(userSender.id).emit("message:outgoing", messages);
 
+    const conversations = await this.findManyConversation(data.targetId);
+    getIO().to(data.targetId).emit("chatts:incoming", conversations);
+
     return {
       status: "success",
       code: 201,
@@ -113,13 +116,23 @@ export default class ChattService {
       throw new ResponseError(404, "User is not found!");
     }
 
+    const data = await this.findManyConversation(user.id);
+    return {
+      code: 200,
+      data,
+      message: "Successfully get conversations!",
+      status: "success",
+    };
+  }
+
+  static async findManyConversation(userId: string) {
     const conversations = await prisma.conversation.findMany({
-      where: { users: { some: { id: user.id } } },
+      where: { users: { some: { id: userId } } },
       select: {
         id: true,
         users: {
           where: {
-            id: { not: user.id },
+            id: { not: userId },
           },
           select: {
             id: true,
@@ -155,12 +168,7 @@ export default class ChattService {
       message: conv.messages[0],
     }));
 
-    return {
-      code: 200,
-      data,
-      message: "Successfully get conversations!",
-      status: "success",
-    };
+    return data;
   }
 
   static async findFirstConversation(
