@@ -97,26 +97,33 @@ export default class ChattService {
       throw new ResponseError(404, "User target is not found!");
     }
 
-    // if (updateRead) {
-    //   await prisma.message.updateMany({
-    //     where: {
-    //       OR: [
-    //         {
-    //           senderId: userRequest.id,
-    //         },
-    //         {
-    //           senderId: userTarget.id,
-    //         },
-    //       ],
-    //     },
-    //     data: {
-    //       isRead: true,
-    //     },
-    //   });
-    //   // const data = await this.findManyConversation(userTarget.id);
-    //   // getIO().to(userRequest.id).emit("chatts:incoming", data);
-    //   // getIO().to(userTarget.id).emit("chatts:incoming", data);
-    // }
+    if (updateRead) {
+      await prisma.message.updateMany({
+        where: {
+          OR: [
+            {
+              senderId: userRequest.id,
+            },
+            {
+              senderId: userTarget.id,
+            },
+          ],
+        },
+        data: {
+          isRead: true,
+        },
+      });
+      const dataConvUserReq = await this.findManyConversation(userRequest.id);
+      getIO().to(userRequest.id).emit("chatts:incoming", dataConvUserReq);
+      const dataConvUserTarget = await this.findManyConversation(userTarget.id);
+      getIO().to(userTarget.id).emit("chatts:incoming", dataConvUserTarget);
+      const messages = await this.findFirstConversation(
+        userRequest.id,
+        userTarget.id,
+      );
+      getIO().to(userRequest.id).emit("message:incoming", messages);
+      getIO().to(userTarget.id).emit("message:outgoing", messages);
+    }
 
     const conversations = await this.findFirstConversation(
       userRequest.id,
