@@ -69,11 +69,16 @@ export default class ChattController {
         throw new ResponseError(403, "Unathorized! Login first");
       }
       const userIdTarget = req.query.userIdTarget;
+      const updateRead = Boolean(req.query.updateRead);
       if (typeof userIdTarget !== "string") {
         throw new ResponseError(400, "Query of userIdTarget is required!");
       }
 
-      const response = await ChattService.getMessage(email, userIdTarget);
+      const response = await ChattService.getMessage(
+        email,
+        userIdTarget,
+        updateRead,
+      );
       return res.status(response.code).json(response);
     } catch (error) {
       next(error);

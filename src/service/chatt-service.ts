@@ -64,7 +64,8 @@ export default class ChattService {
 
     const conversations = await this.findManyConversation(data.targetId);
     getIO().to(data.targetId).emit("chatts:incoming", conversations);
-
+    const conversationsUser = await this.findManyConversation(userSender.id);
+    getIO().to(userSender.id).emit("chatts:outgoing", conversationsUser);
     return {
       status: "success",
       code: 201,
@@ -76,6 +77,7 @@ export default class ChattService {
   static async getMessage(
     email: string,
     userIdTarget: string,
+    updateRead: boolean,
   ): Promise<ResponsePayload> {
     const userRequest = await prisma.user.findUnique({
       where: { email },
@@ -94,6 +96,28 @@ export default class ChattService {
     if (!userTarget) {
       throw new ResponseError(404, "User target is not found!");
     }
+
+    // if (updateRead) {
+    //   await prisma.message.updateMany({
+    //     where: {
+    //       OR: [
+    //         {
+    //           senderId: userRequest.id,
+    //         },
+    //         {
+    //           senderId: userTarget.id,
+    //         },
+    //       ],
+    //     },
+    //     data: {
+    //       isRead: true,
+    //     },
+    //   });
+    //   // const data = await this.findManyConversation(userTarget.id);
+    //   // getIO().to(userRequest.id).emit("chatts:incoming", data);
+    //   // getIO().to(userTarget.id).emit("chatts:incoming", data);
+    // }
+
     const conversations = await this.findFirstConversation(
       userRequest.id,
       userTarget.id,
@@ -117,6 +141,7 @@ export default class ChattService {
     }
 
     const data = await this.findManyConversation(user.id);
+
     return {
       code: 200,
       data,
@@ -147,7 +172,6 @@ export default class ChattService {
         },
         messages: {
           orderBy: { createdAt: "desc" },
-          take: 1,
           select: {
             id: true,
             content: true,
@@ -162,11 +186,17 @@ export default class ChattService {
       },
     });
 
-    const data = conversations.map((conv) => ({
-      convId: conv.id,
-      userFrom: conv.users[0],
-      message: conv.messages[0],
-    }));
+    const data = conversations.map((conv) => {
+      const totalUnread = conv.messages.filter(
+        (msg) => msg.isRead === false,
+      ).length;
+      return {
+        convId: conv.id,
+        userFrom: conv.users[0],
+        message: conv.messages[0],
+        totalUnread,
+      };
+    });
 
     return data;
   }
