@@ -23,4 +23,5 @@ export interface SocketUser extends Socket {
     email: string;
     username: string;
   };
+  userId?: string;
 }

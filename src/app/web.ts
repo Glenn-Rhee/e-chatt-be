@@ -16,6 +16,14 @@ const PORT = 8001 as const;
 const server = http.createServer(app);
 const io = initSocket(server);
 setupSocketHandlers(io);
+io.on("connection", (socket) => {
+  socket.on("conversation:join", (convId) => {
+    socket.join(`conversation:${convId}`);
+  });
+  socket.on("conversation:leave", (convId) => {
+    socket.leave(`conversation:${convId}`);
+  });
+});
 
 server.listen(8001, () => {
   console.log("Socket server running on http:/localhost:8001");

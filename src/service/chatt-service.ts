@@ -1,5 +1,5 @@
 import type z from "zod";
-import type { ResponsePayload } from "../types/index.js";
+import type { ResponsePayload, SocketUser } from "../types/index.js";
 import type ChattValidation from "../validation/chatt-validation.js";
 import { prisma } from "../lib/prisma.js";
 import ResponseError from "../error/Response-Error.js";
@@ -39,7 +39,7 @@ export default class ChattService {
       });
     }
 
-    await prisma.message.create({
+    let msg = await prisma.message.create({
       data: {
         content: data.message,
         senderId: userSender.id,
@@ -54,6 +54,32 @@ export default class ChattService {
       },
     });
 
+    const roomName = `conversation:${conversation?.id}`;
+    const socketsInRoom = await getIO().in(roomName).fetchSockets();
+
+    const isReceiverinRoom = socketsInRoom.some(
+      (s) => s.data.userId === data.targetId,
+    );
+
+    if (isReceiverinRoom) {
+      await prisma.message.updateMany({
+        where: {
+          OR: [
+            {
+              senderId: userSender.id,
+            },
+            {
+              senderId: data.targetId,
+            },
+          ],
+          isRead: false,
+        },
+        data: {
+          isRead: true,
+        },
+      });
+    }
+
     const messages = await this.findFirstConversation(
       userSender.id,
       data.targetId,
@@ -66,6 +92,7 @@ export default class ChattService {
     getIO().to(data.targetId).emit("chatts:incoming", conversations);
     const conversationsUser = await this.findManyConversation(userSender.id);
     getIO().to(userSender.id).emit("chatts:outgoing", conversationsUser);
+
     return {
       status: "success",
       code: 201,

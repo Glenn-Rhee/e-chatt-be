@@ -24,5 +24,6 @@ export function setupSocketHandlers(io: Server) {
     }
 
     socket.join(dataUser.id);
+    socket.data.userId = dataUser.id;
   });
 }
