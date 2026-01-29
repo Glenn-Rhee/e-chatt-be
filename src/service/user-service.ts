@@ -6,6 +6,11 @@ import { v4 } from "uuid";
 import JWT from "../lib/jwt.js";
 import Encryption from "../lib/encryption.js";
 import ResponseError from "../error/Response-Error.js";
+import type { DefaultEventsMap, Server, Socket } from "socket.io";
+
+export const onlineUser = new Map<string, Set<string>>();
+export const socketUser = new Map<string, string>();
+export const lastPing = new Map<string, number>();
 
 export default class UserService {
   public static async CreateUser(
@@ -154,5 +159,60 @@ export default class UserService {
       data: null,
       message: "Success!",
     };
+  }
+
+  public static async HanldeUserOnline(
+    userId: string,
+    socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>,
+    io: Server<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>,
+  ) {
+    socketUser.set(socket.id, userId);
+
+    if (!onlineUser.has(userId)) {
+      onlineUser.set(userId, new Set());
+    }
+
+    onlineUser.get(userId)!.add(socket.id);
+    lastPing.set(socket.id, Date.now());
+
+    if (onlineUser.get(userId)!.size === 1) {
+      await prisma.user.update({
+        where: { id: userId },
+        data: { isOnline: true },
+      });
+
+      console.log("cihuy 2")
+
+      io.emit("user:status", { userId, isOnline: true });
+    }
+  }
+
+  public static async HanldeUserOffline(
+    socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>,
+    io: Server<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>,
+  ) {
+    const userId = socketUser.get(socket.id);
+
+    if (!userId) return;
+
+    onlineUser.get(userId)?.delete(socket.id);
+    socketUser.delete(socket.id);
+    lastPing.delete(socket.id);
+
+    setTimeout(async () => {
+      const sockets = onlineUser.get(userId);
+      if (!sockets || sockets.size === 0) {
+        await prisma.user.update({
+          where: { id: userId },
+          data: { isOnline: false, lastSeen: new Date() },
+        });
+
+        io.emit("user:status", {
+          userId,
+          isOnline: false,
+          lastSeen: new Date(),
+        });
+      }
+    }, 10000);
   }
 }

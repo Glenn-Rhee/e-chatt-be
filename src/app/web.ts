@@ -10,6 +10,7 @@ import { friendRoutes } from "../router/friend-routes.js";
 import http from "http";
 import { initSocket } from "../lib/socket.js";
 import { setupSocketHandlers } from "../lib/socket-handler.js";
+import UserService, { lastPing } from "../service/user-service.js";
 
 const app = express();
 const PORT = 8001 as const;
@@ -23,7 +24,29 @@ io.on("connection", (socket) => {
   socket.on("conversation:leave", (convId) => {
     socket.leave(`conversation:${convId}`);
   });
+
+  socket.on("user:online", async (userId: string) => {
+    await UserService.HanldeUserOnline(userId, socket, io);
+  });
+
+  socket.on("user:ping", () => {
+    lastPing.set(socket.id, Date.now());
+  });
+
+  socket.on("disconnect", async () => {
+    await UserService.HanldeUserOffline(socket, io);
+  });
 });
+
+setInterval(() => {
+  const now = Date.now();
+  for (const [socketId, time] of lastPing.entries()) {
+    if (now - time > 15000) {
+      const socket = io.sockets.sockets.get(socketId);
+      socket?.disconnect(true);
+    }
+  }
+}, 5_000);
 
 server.listen(8001, () => {
   console.log("Socket server running on http:/localhost:8001");
