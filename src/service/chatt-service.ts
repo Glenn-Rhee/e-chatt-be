@@ -1,5 +1,5 @@
 import type z from "zod";
-import type { ResponsePayload, SocketUser } from "../types/index.js";
+import type { ResponsePayload } from "../types/index.js";
 import type ChattValidation from "../validation/chatt-validation.js";
 import { prisma } from "../lib/prisma.js";
 import ResponseError from "../error/Response-Error.js";
@@ -39,7 +39,7 @@ export default class ChattService {
       });
     }
 
-    let msg = await prisma.message.create({
+    await prisma.message.create({
       data: {
         content: data.message,
         senderId: userSender.id,

@@ -31,6 +31,8 @@ model User {
   username         String
   email            String          @unique
   created_at       DateTime        @default(now())
+  isOnline         Boolean         @default(false)
+  lastSeen         DateTime?
   updated_at       DateTime        @updatedAt
   userDetail       UserDetail?
   conversations    Conversation[]  @relation("ConversationUsers")
