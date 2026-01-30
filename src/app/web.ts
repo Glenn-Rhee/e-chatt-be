@@ -38,6 +38,16 @@ io.on("connection", (socket) => {
   });
 });
 
+setInterval(() => {
+  const now = Date.now();
+  for (const [socketId, time] of lastPing.entries()) {
+    if (now - time > 15000) {
+      const socket = io.sockets.sockets.get(socketId);
+      socket?.disconnect(true);
+    }
+  }
+}, 5_000);
+
 server.listen(8001, () => {
   console.log("Socket server running on http:/localhost:8001");
 });
