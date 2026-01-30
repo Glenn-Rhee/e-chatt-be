@@ -202,6 +202,8 @@ export default class ChattService {
                 image_url: true,
               },
             },
+            lastSeen: true,
+            isOnline: true,
           },
         },
         messages: {

@@ -181,8 +181,6 @@ export default class UserService {
         data: { isOnline: true },
       });
 
-      console.log("cihuy 2")
-
       io.emit("user:status", { userId, isOnline: true });
     }
   }
@@ -199,20 +197,18 @@ export default class UserService {
     socketUser.delete(socket.id);
     lastPing.delete(socket.id);
 
-    setTimeout(async () => {
-      const sockets = onlineUser.get(userId);
-      if (!sockets || sockets.size === 0) {
-        await prisma.user.update({
-          where: { id: userId },
-          data: { isOnline: false, lastSeen: new Date() },
-        });
+    const sockets = onlineUser.get(userId);
+    if (!sockets || sockets.size === 0) {
+      await prisma.user.update({
+        where: { id: userId },
+        data: { isOnline: false, lastSeen: new Date() },
+      });
 
-        io.emit("user:status", {
-          userId,
-          isOnline: false,
-          lastSeen: new Date(),
-        });
-      }
-    }, 10000);
+      io.emit("user:status", {
+        userId,
+        isOnline: false,
+        lastSeen: new Date(),
+      });
+    }
   }
 }
