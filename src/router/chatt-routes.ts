@@ -6,6 +6,7 @@ export const chattRoutes = Router();
 
 chattRoutes.post("/chatt", userMiddleware, ChattController.postChatt);
 chattRoutes.get("/chatts", userMiddleware, ChattController.getChatts);
+chattRoutes.delete("/chatts", userMiddleware, ChattController.deleteChatts);
 chattRoutes.post(
   "/conversation",
   userMiddleware,

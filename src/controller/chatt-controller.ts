@@ -84,4 +84,31 @@ export default class ChattController {
       next(error);
     }
   }
+
+  static async deleteChatts(
+    req: RequestUser,
+    res: Response,
+    next: NextFunction,
+  ) {
+    try {
+      const email = req.email;
+      if (!email) {
+        throw new ResponseError(403, "Unathorized! Login first");
+      }
+
+      const dataIdConv = Validation.validate(
+        ChattValidation.DELETECHATT,
+        req.body,
+      );
+
+      const response = await ChattService.deleteChatt(
+        email,
+        dataIdConv.idConvs,
+      );
+
+      return res.status(response.code).json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
 }
