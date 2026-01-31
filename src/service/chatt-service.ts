@@ -355,6 +355,13 @@ export default class ChattService {
       throw new ResponseError(404, "User is not found!");
     }
 
+    await prisma.message.deleteMany({
+      where: {
+        conversationId: {
+          in: idConvs,
+        },
+      },
+    });
     await prisma.conversation.deleteMany({
       where: {
         id: {
@@ -362,6 +369,9 @@ export default class ChattService {
         },
       },
     });
+
+    const dataConvUser = await this.findManyConversation(user.id);
+    getIO().to(user.id).emit("chatts:incoming", dataConvUser);
 
     return {
       status: "success",
