@@ -127,14 +127,7 @@ export default class ChattService {
     if (updateRead) {
       await prisma.message.updateMany({
         where: {
-          OR: [
-            {
-              senderId: userRequest.id,
-            },
-            {
-              senderId: userTarget.id,
-            },
-          ],
+          senderId: userTarget.id,
         },
         data: {
           isRead: true,
