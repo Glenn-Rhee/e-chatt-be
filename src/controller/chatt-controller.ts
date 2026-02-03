@@ -111,4 +111,12 @@ export default class ChattController {
       next(error);
     }
   }
+
+  static async deleteMessages(req: RequestUser, res: Response, next:NextFunction){
+    try {
+      
+    } catch (error) {
+      next(error)
+    }
+  }
 }

@@ -13,3 +13,4 @@ chattRoutes.post(
   ChattController.createConversation,
 );
 chattRoutes.get("/message", userMiddleware, ChattController.getMessage);
+chattRoutes.delete("/messages", userMiddleware, ChattController.deleteMessages);
