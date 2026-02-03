@@ -370,7 +370,32 @@ export default class ChattService {
       status: "success",
       code: 201,
       data: null,
-      message: "Successfully delet conversations!",
+      message: "Successfully delete conversations!",
+    };
+  }
+
+  static async deleteMessage(
+    idMsgs: string[],
+    emailUser: string,
+  ): Promise<ResponsePayload> {
+    const user = await prisma.user.findUnique({ where: { email: emailUser } });
+    if (!user) {
+      throw new ResponseError(404, "User is not found!");
+    }
+
+    await prisma.message.deleteMany({
+      where: {
+        id: {
+          in: idMsgs,
+        },
+      },
+    });
+
+    return {
+      status: "success",
+      code: 201,
+      data: null,
+      message: "Successfully delete messages!",
     };
   }
 }

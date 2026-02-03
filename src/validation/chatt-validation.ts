@@ -11,4 +11,10 @@ export default class ChattValidation {
       .array(z.string({ error: "Please fill id conversation properly!" }))
       .min(1, { error: "At least one conversations id is required!" }),
   });
+
+  static readonly DELETEMESSAGE = z.object({
+    idMsgs: z
+      .array(z.string({ error: "Please fill id conversation properly!" }))
+      .min(1, { error: "At least one conversations id is required!" }),
+  });
 }

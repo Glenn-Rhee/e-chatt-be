@@ -112,11 +112,23 @@ export default class ChattController {
     }
   }
 
-  static async deleteMessages(req: RequestUser, res: Response, next:NextFunction){
+  static async deleteMessages(
+    req: RequestUser,
+    res: Response,
+    next: NextFunction,
+  ) {
     try {
-      
+      const email = req.email;
+      if (!email) {
+        throw new ResponseError(403, "Unathorized! Login first");
+      }
+
+      const data = Validation.validate(ChattValidation.DELETEMESSAGE, req.body);
+
+      const response = await ChattService.deleteMessage(data.idMsgs, email);
+      return res.status(response.code).json(response);
     } catch (error) {
-      next(error)
+      next(error);
     }
   }
 }
